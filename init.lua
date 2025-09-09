@@ -90,8 +90,11 @@ P.S. You can delete this when you're done too. It's your config now! :)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+-- Enable syntax highlighting
+vim.cmd 'syntax on'
+
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -99,13 +102,17 @@ vim.g.have_nerd_font = false
 --  For more options, you can see `:help option-list`
 
 -- Make line numbers default
-vim.o.number = true
+-- vim.o.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
 -- vim.o.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
-vim.o.mouse = 'a'
+vim.o.mouse = ''
+
+vim.opt.background = 'dark'
+vim.opt.termguicolors = true
+vim.opt.guifont = '7x14'
 
 -- Don't show the mode, since it's already in the status line
 vim.o.showmode = false
@@ -137,6 +144,12 @@ vim.o.updatetime = 250
 -- Decrease mapped sequence wait time
 vim.o.timeoutlen = 300
 
+-- Use spaces instead of tabs
+vim.o.expandtab = true
+vim.o.tabstop = 2
+vim.o.shiftwidth = 2
+vim.o.softtabstop = 2
+
 -- Configure how new splits should be opened
 vim.o.splitright = true
 vim.o.splitbelow = true
@@ -150,7 +163,7 @@ vim.o.splitbelow = true
 --   See `:help lua-options`
 --   and `:help lua-options-guide`
 vim.o.list = true
-vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+vim.opt.listchars = { tab = '>-', trail = '.', nbsp = '~' }
 
 -- Preview substitutions live, as you type!
 vim.o.inccommand = 'split'
@@ -199,6 +212,9 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Alternative: Use Telescope for fuzzy function finding
+vim.keymap.set('n', '<leader>tf', ':Telescope treesitter<CR>', { desc = 'Find functions with Telescope' })
+
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
@@ -216,6 +232,67 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
   callback = function()
     vim.hl.on_yank()
+  end,
+})
+
+vim.cmd [[
+  augroup BlackBackground
+    autocmd!
+    autocmd ColorScheme * highlight Normal guibg=#000000
+    autocmd ColorScheme * highlight NonText guifg=#666666 guibg=#000000
+    autocmd ColorScheme * highlight LineNr guibg=#000000
+    autocmd ColorScheme * highlight Folded guibg=#000000
+  augroup END
+]]
+
+-- Override bold white text to be non-bold
+vim.cmd [[
+  augroup NoBoldWhite
+    autocmd!
+    autocmd ColorScheme * highlight Comment gui=NONE
+    autocmd ColorScheme * highlight String gui=NONE
+    autocmd ColorScheme * highlight Constant gui=NONE
+    autocmd ColorScheme * highlight Identifier gui=NONE
+    autocmd ColorScheme * highlight Statement gui=NONE
+    autocmd ColorScheme * highlight Type gui=NONE
+    autocmd ColorScheme * highlight Special gui=NONE
+    autocmd ColorScheme * highlight PreProc gui=NONE
+    autocmd ColorScheme * highlight SpecialKey guifg=#666666 gui=NONE
+  augroup END
+]]
+
+-- Set strings to green color (non-bold)
+vim.cmd [[
+  augroup GreenStrings
+    autocmd!
+    autocmd ColorScheme * highlight String guifg=#00FF00 gui=NONE
+  augroup END
+]]
+
+local grp = vim.api.nvim_create_augroup('C_Col81_PerLine', { clear = true })
+
+-- Bright red bg for the single char at col 81
+vim.api.nvim_create_autocmd({ 'VimEnter', 'ColorScheme' }, {
+  group = grp,
+  callback = function()
+    vim.api.nvim_set_hl(0, 'Col81Char', { bg = '#ff0000', ctermbg = 9 })
+  end,
+})
+
+-- Apply only for C buffers; matches are dynamic (auto-update as you type)
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'c',
+  group = grp,
+  callback = function()
+    -- Remove any previous vertical-bar style matches if you tried them
+    for _, m in ipairs(vim.fn.getmatches()) do
+      if m.group == 'Col81Char' then
+        vim.fn.matchdelete(m.id)
+      end
+    end
+    -- Highlight **the character at virtual column 81** (not the whole column)
+    -- This only shows on lines that *have* a char at col 81.
+    vim.fn.matchadd('Col81Char', '\\%81v.', 200)
   end,
 })
 
@@ -248,6 +325,8 @@ rtp:prepend(lazypath)
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
+  'sheerun/vim-polyglot', -- Enhanced syntax highlighting for many languages
+  'pwntester/octo.nvim', -- GitHub integration for code reviews
 
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
@@ -876,30 +955,140 @@ require('lazy').setup({
     },
   },
 
-  { -- You can easily change to a different colorscheme.
-    -- Change the name of the colorscheme plugin below, and then
-    -- change the command in the config to whatever the name of that colorscheme is.
-    --
-    -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
+  {
+    'projekt0n/github-nvim-theme',
     config = function()
-      ---@diagnostic disable-next-line: missing-fields
-      require('tokyonight').setup {
-        styles = {
-          comments = { italic = false }, -- Disable italics in comments
-        },
-      }
-
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'github_dark_colorblind'
     end,
   },
+  { 'bluz71/vim-moonfly-colors', name = 'moonfly', lazy = false, priority = 1000 },
+  {
+    'ellisonleao/gruvbox.nvim',
+    opts = {
+      contrast = 'hard', -- or "soft"
+    },
+  },
+  {
+    'Mofiqul/dracula.nvim',
+  },
+  {
+    'catppuccin/nvim',
+    name = 'catppuccin',
+    priority = 1000,
+    opts = {
+      flavour = 'mocha',
+    },
+  },
+  {
+    'navarasu/onedark.nvim',
+  },
+  {
+    'EdenEast/nightfox.nvim',
+  },
+  {
+    'zacanger/angr.vim',
+  },
+  {
+    'scottmckendry/cyberdream.nvim',
+  },
+  {
+    'github/copilot.vim',
+    event = 'BufEnter',
+    config = function()
+      -- Enable Copilot by default
+      vim.g.copilot_enabled = true
 
+      -- Set up keybindings for Copilot
+      vim.keymap.set('i', '<C-g>', 'copilot#Accept("<CR>")', { expr = true, silent = true })
+      vim.keymap.set('i', '<C-j>', 'copilot#Next()', { expr = true, silent = true })
+      vim.keymap.set('i', '<C-k>', 'copilot#Previous()', { expr = true, silent = true })
+      vim.keymap.set('i', '<C-x>', 'copilot#Dismiss()', { expr = true, silent = true })
+
+      -- Manual trigger for completion
+      vim.keymap.set('i', '<C-Space>', 'copilot#Suggest()', { expr = true, silent = true })
+    end,
+  },
+  {
+    'stevearc/aerial.nvim',
+    opts = {
+      -- Show all symbols (disable filtering)
+      filter_kind = false,
+      -- Show guides
+      show_guides = true,
+      -- Use LSP backend for better symbol detection
+      backends = { 'lsp', 'treesitter', 'markdown', 'man' },
+      -- Layout
+      layout = {
+        max_width = { 40, 0.2 },
+        width = nil,
+        min_width = 20,
+      },
+      -- Auto attach to buffers
+      attach_mode = 'global',
+      -- Highlight current symbol
+      highlight_on_hover = true,
+    },
+    -- Optional dependencies
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter',
+      'nvim-tree/nvim-web-devicons',
+    },
+    keys = {
+      { '<C-o>', '<cmd>AerialToggle!<cr>', desc = 'Toggle Aerial (symbols sidebar)' },
+    },
+  },
+  {
+    'folke/trouble.nvim',
+    opts = { use_diagnostic_signs = true },
+    keys = {
+      -- disable conflicting <leader>c* keys
+      { '<leader>cs', false },
+      { '<leader>cS', false }, -- THIS is the one you still see
+      { '<leader>cl', false },
+      { '<leader>cL', false },
+      { '<leader>cd', false },
+      { '<leader>cD', false },
+
+      -- (optional) put Trouble on <leader>t* instead
+      { '<leader>ts', '<cmd>Trouble symbols toggle focus=false<cr>', desc = 'Symbols (Trouble)' },
+      { '<leader>tt', '<cmd>Trouble toggle<cr>', desc = 'Trouble: toggle' },
+      { '<leader>td', '<cmd>Trouble diagnostics toggle<cr>', desc = 'Trouble: diagnostics' },
+      { '<leader>tq', '<cmd>Trouble qflist toggle<cr>', desc = 'Trouble: quickfix' },
+    },
+  },
+  {
+    'akinsho/bufferline.nvim',
+    opts = {
+      options = {
+        numbers = 'ordinal', -- Shows buffer numbers (1, 2, 3, etc.)
+        show_buffer_icons = true,
+        show_buffer_close_icons = false,
+        show_close_icon = false,
+        show_tab_indicators = true,
+        separator_style = 'slant',
+      },
+    },
+  },
+  {
+    'dhananjaylatkar/cscope_maps.nvim',
+    dependencies = { 'nvim-telescope/telescope.nvim' }, -- optional, for nice picker UI
+    config = function()
+      require('cscope_maps').setup {
+        cscope = {
+          exec = 'cscope', -- "cscope" or "gtags-cscope"
+          db_file = 'cscope.out',
+          picker = 'telescope', -- "quickfix", "telescope", "fzf-lua"
+          skip_picker_for_single_result = true,
+          -- project_root = vim.fn.getcwd(), -- defaults to current dir
+        },
+      }
+    end,
+  },
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
+
+  -- Automatic bullet and numbering for lists
+  { 'dkarter/bullets.vim' },
 
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
@@ -964,6 +1153,35 @@ require('lazy').setup({
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
 
+  -- Markdown support plugins
+  {
+    'preservim/vim-markdown',
+    ft = 'markdown',
+    config = function()
+      vim.g.vim_markdown_folding_disabled = 1
+      vim.g.vim_markdown_frontmatter = 1
+      vim.g.vim_markdown_toml_frontmatter = 1
+      vim.g.vim_markdown_json_frontmatter = 1
+    end,
+  },
+  {
+    'iamcco/markdown-preview.nvim',
+    cmd = { 'MarkdownPreviewToggle', 'MarkdownPreview', 'MarkdownPreviewStop' },
+    ft = 'markdown',
+    config = function()
+      -- Terminal-friendly configuration
+      vim.g.mkdp_browser = 'w3m' -- or 'lynx', 'elinks', 'links'
+      vim.g.mkdp_echo_preview_url = 1 -- Show URL in command line
+      vim.g.mkdp_open_to_the_world = 1 -- Allow network access
+      vim.g.mkdp_port = '8080' -- Fixed port for easier access
+
+      -- Install dependencies when the plugin loads
+      if vim.fn.executable 'npm' == 1 then
+        vim.fn['mkdp#util#install']()
+      end
+    end,
+  },
+
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
@@ -984,7 +1202,7 @@ require('lazy').setup({
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
