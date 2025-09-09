@@ -5,8 +5,9 @@
 return {
   {
     'lewis6991/gitsigns.nvim',
-    opts = {
-      on_attach = function(bufnr)
+  opts = {
+    signcolumn = true, -- Keep signcolumn on by default
+    on_attach = function(bufnr)
         local gitsigns = require 'gitsigns'
 
         local function map(mode, l, r, opts)
