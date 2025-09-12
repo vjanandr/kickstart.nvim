@@ -202,7 +202,7 @@ return {
           },
           review_thread = {
             goto_issue = { lhs = '<space>gi', desc = 'navigate to a local repo issue' },
-            add_comment = { lhs = '<space>ca', desc = 'add comment' },
+            add_comment = { lhs = '<space>rc', desc = 'add comment' },
             add_suggestion = { lhs = '<space>sa', desc = 'add suggestion' },
             delete_comment = { lhs = '<space>cd', desc = 'delete comment' },
             next_comment = { lhs = ']c', desc = 'go to next comment' },
@@ -228,7 +228,7 @@ return {
             close_review_tab = { lhs = '<C-c>', desc = 'close review tab' },
           },
           review_diff = {
-            add_review_comment = { lhs = '<space>ca', desc = 'add a new review comment' },
+            add_review_comment = { lhs = '<space>rc', desc = 'add a new review comment' },
             add_review_suggestion = { lhs = '<space>sa', desc = 'add a new review suggestion' },
             focus_files = { lhs = '<leader>e', desc = 'move focus to changed file panel' },
             toggle_files = { lhs = '<leader>b', desc = 'hide/show changed files panel' },
