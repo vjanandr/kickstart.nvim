@@ -959,6 +959,10 @@ require('lazy').setup({
     'projekt0n/github-nvim-theme',
     config = function()
       vim.cmd.colorscheme 'github_dark_colorblind'
+      vim.api.nvim_set_hl(0, 'TelescopeSelection', { bg = '#2d3748', fg = '#ffffff', bold = true })
+      vim.api.nvim_set_hl(0, 'TelescopeSelectionCaret', { fg = '#ff6b6b' })
+      vim.api.nvim_set_hl(0, 'TelescopeMatching', { fg = '#ffd93d', bold = true })
+      vim.api.nvim_set_hl(0, 'TelescopeBorder', { fg = '#4a5568' })
     end,
   },
   { 'bluz71/vim-moonfly-colors', name = 'moonfly', lazy = false, priority = 1000 },
