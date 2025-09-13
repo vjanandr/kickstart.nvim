@@ -16,6 +16,13 @@ return {
     end,
   },
   {
+    'ggandor/leap.nvim',
+    config = function()
+      vim.keymap.set({ 'n', 'x', 'o' }, 'gs', '<Plug>(leap-forward)')
+      vim.keymap.set({ 'n', 'x', 'o' }, 'gS', '<Plug>(leap-backward)')
+    end,
+  },
+  {
     'folke/trouble.nvim',
     opts = { use_diagnostic_signs = true },
     keys = {
