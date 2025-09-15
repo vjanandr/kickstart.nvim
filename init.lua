@@ -239,7 +239,7 @@ vim.cmd [[
   augroup BlackBackground
     autocmd!
     autocmd ColorScheme * highlight Normal guibg=#000000
-    autocmd ColorScheme * highlight NonText guifg=#666666 guibg=#FFFFFF
+    autocmd ColorScheme * highlight NonText guifg=#666666 guibg=#000000
     autocmd ColorScheme * highlight LineNr guibg=#000000
     autocmd ColorScheme * highlight Folded guibg=#000000
   augroup END
