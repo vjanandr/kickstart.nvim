@@ -239,7 +239,7 @@ vim.cmd [[
   augroup BlackBackground
     autocmd!
     autocmd ColorScheme * highlight Normal guibg=#000000
-    autocmd ColorScheme * highlight NonText guifg=#666666 guibg=#000000
+    autocmd ColorScheme * highlight NonText guifg=#666666 guibg=#FFFFFF
     autocmd ColorScheme * highlight LineNr guibg=#000000
     autocmd ColorScheme * highlight Folded guibg=#000000
   augroup END
@@ -958,7 +958,7 @@ require('lazy').setup({
   {
     'projekt0n/github-nvim-theme',
     config = function()
-      vim.cmd.colorscheme 'github_dark_colorblind'
+      vim.cmd.colorscheme 'github_dark'
       vim.api.nvim_set_hl(0, 'TelescopeSelection', { bg = '#2d3748', fg = '#ffffff', bold = true })
       vim.api.nvim_set_hl(0, 'TelescopeSelectionCaret', { fg = '#ff6b6b' })
       vim.api.nvim_set_hl(0, 'TelescopeMatching', { fg = '#ffd93d', bold = true })
