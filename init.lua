@@ -265,7 +265,7 @@ vim.cmd [[
 vim.cmd [[
   augroup GreenStrings
     autocmd!
-    autocmd ColorScheme * highlight String guifg=#00FF00 gui=NONE
+    autocmd ColorScheme * highlight String guifg=#4CE17C gui=NONE
   augroup END
 ]]
 
@@ -327,6 +327,12 @@ require('lazy').setup({
   'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
   'sheerun/vim-polyglot', -- Enhanced syntax highlighting for many languages
   'pwntester/octo.nvim', -- GitHub integration for code reviews
+  {
+    'vladdoster/remember.nvim',
+    config = function()
+      require 'remember'
+    end,
+  },
 
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
