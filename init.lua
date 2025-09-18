@@ -967,36 +967,6 @@ require('lazy').setup({
       vim.api.nvim_set_hl(0, 'NonText', { fg = '#c0c0c0', bg = '#333333' })
     end,
   },
-  { 'bluz71/vim-moonfly-colors', name = 'moonfly', lazy = false, priority = 1000 },
-  {
-    'ellisonleao/gruvbox.nvim',
-    opts = {
-      contrast = 'hard', -- or "soft"
-    },
-  },
-  {
-    'Mofiqul/dracula.nvim',
-  },
-  {
-    'catppuccin/nvim',
-    name = 'catppuccin',
-    priority = 1000,
-    opts = {
-      flavour = 'mocha',
-    },
-  },
-  {
-    'navarasu/onedark.nvim',
-  },
-  {
-    'EdenEast/nightfox.nvim',
-  },
-  {
-    'zacanger/angr.vim',
-  },
-  {
-    'scottmckendry/cyberdream.nvim',
-  },
   {
     'github/copilot.vim',
     event = 'BufEnter',
