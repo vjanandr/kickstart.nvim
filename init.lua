@@ -954,9 +954,15 @@ require('lazy').setup({
       signature = { enabled = true },
     },
   },
-
+  {
+    'folke/tokyonight.nvim',
+  },
   {
     'projekt0n/github-nvim-theme',
+  },
+
+  {
+    'rebelot/kanagawa.nvim',
     config = function()
       vim.cmd.colorscheme 'github_dark_colorblind'
       vim.api.nvim_set_hl(0, 'TelescopeSelection', { bg = '#2d3748', fg = '#ffffff', bold = true })
