@@ -327,6 +327,7 @@ require('lazy').setup({
   'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
   'sheerun/vim-polyglot', -- Enhanced syntax highlighting for many languages
   'pwntester/octo.nvim', -- GitHub integration for code reviews
+  'dhruvasagar/vim-table-mode',
 
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
