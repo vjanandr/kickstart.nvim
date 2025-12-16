@@ -810,7 +810,6 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
-        'clang-format',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -898,6 +897,10 @@ require('lazy').setup({
 
           local ft = vim.bo[bufnr].filetype
           local use_clang_format_only = (ft == 'c' or ft == 'cpp')
+
+          if use_clang_format_only and vim.fn.executable('clang-format') ~= 1 then
+            return
+          end
 
           local ok, gitsigns = pcall(require, 'gitsigns')
           if not ok or type(gitsigns.get_hunks) ~= 'function' then
