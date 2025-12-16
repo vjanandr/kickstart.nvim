@@ -241,6 +241,16 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 -- Alternative: Use Telescope for fuzzy function finding
 vim.keymap.set('n', '<leader>tf', ':Telescope treesitter<CR>', { desc = 'Find functions with Telescope' })
 
+-- Smarter gf: if under cursor is "filename:line[:col]", use gF to jump to that location
+vim.keymap.set('n', 'gf', function()
+  local cw = vim.fn.expand('<cWORD>')
+  if type(cw) == 'string' and cw:match(':%d+') then
+    vim.cmd('normal! gF')
+  else
+    vim.cmd('normal! gf')
+  end
+end, { desc = 'Open file under cursor (supports file:line[:col])' })
+
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
