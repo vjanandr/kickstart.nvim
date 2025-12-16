@@ -251,6 +251,27 @@ vim.keymap.set('n', 'gf', function()
   end
 end, { desc = 'Open file under cursor (supports file:line[:col])' })
 
+vim.api.nvim_create_user_command('E', function(opts)
+  local arg = opts.args or ''
+  local fname, lnum, col
+  local m1, m2, m3 = string.match(arg, '^(.-):(%d+):(%d+)$')
+  if m1 then
+    fname, lnum, col = m1, tonumber(m2), tonumber(m3)
+  else
+    local n1, n2 = string.match(arg, '^(.-):(%d+)$')
+    if n1 then
+      fname, lnum = n1, tonumber(n2)
+    else
+      fname = arg
+    end
+  end
+  vim.cmd('edit ' .. vim.fn.fnameescape(fname))
+  if lnum then
+    local c = (col and col > 0) and (col - 1) or 0
+    pcall(vim.api.nvim_win_set_cursor, 0, { lnum, c })
+  end
+end, { nargs = 1, complete = 'file' })
+
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
