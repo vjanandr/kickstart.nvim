@@ -272,6 +272,12 @@ vim.api.nvim_create_user_command('E', function(opts)
   end
 end, { nargs = 1, complete = 'file' })
 
+-- Make :e and :edit accept filename:line[:col] transparently by routing to :E
+vim.cmd [[
+  cnoreabbrev <expr> e getcmdline() =~# '^e\s\+\S\+:\d\+\%(:\d\+\)\?\s*$' ? 'E' : 'e'
+  cnoreabbrev <expr> edit getcmdline() =~# '^edit\s\+\S\+:\d\+\%(:\d\+\)\?\s*$' ? 'E' : 'edit'
+]]
+
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
@@ -289,6 +295,49 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
   callback = function()
     vim.hl.on_yank()
+  end,
+})
+
+-- Open files passed as filename:line[:col] from the shell (e.g. `nvim foo.c:123:9`)
+vim.api.nvim_create_autocmd('VimEnter', {
+  once = true,
+  callback = function()
+    local argv = vim.fn.argv()
+    if type(argv) ~= 'table' or #argv == 0 then
+      return
+    end
+    local function open_at_pos(spec)
+      local fname, lnum, col
+      local m1, m2, m3 = string.match(spec, '^(.-):(%d+):(%d+)$')
+      if m1 then
+        fname, lnum, col = m1, tonumber(m2), tonumber(m3)
+      else
+        local n1, n2 = string.match(spec, '^(.-):(%d+)$')
+        if n1 then
+          fname, lnum = n1, tonumber(n2)
+        else
+          return false
+        end
+      end
+      local uv = (vim.uv or vim.loop)
+      local exists = (vim.fn.filereadable(fname) == 1) or (uv.fs_stat(fname) ~= nil)
+      if not exists then
+        return false
+      end
+      vim.cmd('silent edit ' .. vim.fn.fnameescape(fname))
+      if lnum then
+        local c = (col and col > 0) and (col - 1) or 0
+        pcall(vim.api.nvim_win_set_cursor, 0, { lnum, c })
+      end
+      return true
+    end
+    for _, a in ipairs(argv) do
+      if type(a) == 'string' and a:match(':%d+') then
+        if open_at_pos(a) then
+          break
+        end
+      end
+    end
   end,
 })
 
