@@ -850,6 +850,7 @@ require('lazy').setup({
       format_on_save = false,
       formatters = {
         clang_format = {
+          command = vim.fn.stdpath('data') .. '/mason/bin/clang-format',
           prepend_args = {
             "--style={BasedOnStyle: LLVM, BreakBeforeBraces: Custom, BraceWrapping: {AfterFunction: true, AfterControlStatement: Never}}",
           },
