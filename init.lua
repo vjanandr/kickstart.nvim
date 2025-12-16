@@ -894,6 +894,9 @@ require('lazy').setup({
       conform.setup(opts)
 
       local group = vim.api.nvim_create_augroup('ConformFormatGitHunks', { clear = true })
+      local uv = (vim.uv or vim.loop)
+      local clang_format_available = nil
+
       vim.api.nvim_create_autocmd('BufWritePre', {
         group = group,
         callback = function(args)
@@ -907,15 +910,29 @@ require('lazy').setup({
             return
           end
 
-          local ft = vim.bo[bufnr].filetype
-          local use_clang_format_only = (ft == 'c' or ft == 'cpp')
-
-          if use_clang_format_only and vim.fn.executable('clang-format') ~= 1 then
+          if vim.bo[bufnr].buftype ~= '' or not vim.bo[bufnr].modifiable then
             return
           end
 
-          local ok, gitsigns = pcall(require, 'gitsigns')
-          if not ok or type(gitsigns.get_hunks) ~= 'function' then
+          local line_count_buf = vim.api.nvim_buf_line_count(bufnr)
+          if line_count_buf > 5000 then
+            return
+          end
+
+          local ft = vim.bo[bufnr].filetype
+          local use_clang_format_only = (ft == 'c' or ft == 'cpp')
+
+          if use_clang_format_only then
+            if clang_format_available == nil then
+              clang_format_available = (vim.fn.executable 'clang-format') == 1
+            end
+            if not clang_format_available then
+              return
+            end
+          end
+
+          local gitsigns = package.loaded.gitsigns
+          if not gitsigns or type(gitsigns.get_hunks) ~= 'function' then
             return
           end
 
@@ -924,22 +941,48 @@ require('lazy').setup({
             return
           end
 
+          local ranges = {}
           for _, hunk in ipairs(hunks) do
             local start_line = hunk.added and hunk.added.start or nil
-            local line_count = hunk.added and hunk.added.count or nil
-            if start_line and line_count and line_count > 0 then
-              conform.format {
-                bufnr = bufnr,
-                async = false,
-                timeout_ms = 500,
-                lsp_format = use_clang_format_only and 'never' or 'fallback',
-                formatters = use_clang_format_only and { 'clang_format' } or nil,
-                range = {
-                  start = { start_line - 1, 0 },
-                  ['end'] = { start_line - 1 + line_count, 0 },
-                },
-              }
+            local count = hunk.added and hunk.added.count or nil
+            if start_line and count and count > 0 then
+              local s = start_line
+              local e = start_line + count - 1
+              ranges[#ranges + 1] = { s = s, e = e }
             end
+          end
+
+          if vim.tbl_isempty(ranges) then
+            return
+          end
+
+          table.sort(ranges, function(a, b)
+            return a.s < b.s
+          end)
+
+          local merged = { ranges[1] }
+          for i = 2, #ranges do
+            local last = merged[#merged]
+            local cur = ranges[i]
+            if cur.s <= (last.e + 1) then
+              last.e = math.max(last.e, cur.e)
+            else
+              merged[#merged + 1] = cur
+            end
+          end
+
+          for _, r in ipairs(merged) do
+            conform.format {
+              bufnr = bufnr,
+              async = false,
+              timeout_ms = 500,
+              lsp_format = use_clang_format_only and 'never' or 'fallback',
+              formatters = use_clang_format_only and { 'clang_format' } or nil,
+              range = {
+                start = { r.s - 1, 0 },
+                ['end'] = { r.e, 0 },
+              },
+            }
           end
         end,
       })
