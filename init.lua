@@ -852,9 +852,13 @@ require('lazy').setup({
         clang_format = {
           command = (function()
             local mason_clang_format = vim.fn.stdpath('data') .. '/mason/bin/clang-format'
-            local stat = (vim.uv or vim.loop).fs_stat(mason_clang_format)
-            if stat and vim.fn.executable(mason_clang_format) == 1 then
-              return mason_clang_format
+            local uv = (vim.uv or vim.loop)
+            local real = uv.fs_realpath(mason_clang_format)
+            if real then
+              local stat = uv.fs_stat(real)
+              if stat and vim.fn.executable(real) == 1 then
+                return real
+              end
             end
             return 'clang-format'
           end)(),
@@ -885,6 +889,10 @@ require('lazy').setup({
           local bufnr = args.buf
           local disable_filetypes = {}
           if disable_filetypes[vim.bo[bufnr].filetype] then
+            return
+          end
+
+          if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
             return
           end
 
@@ -920,6 +928,10 @@ require('lazy').setup({
           end
         end,
       })
+
+      vim.api.nvim_create_user_command('AutoFormatToggle', function()
+        vim.b.disable_autoformat = not vim.b.disable_autoformat
+      end, { desc = 'Toggle autoformat on save for current buffer' })
     end,
   },
 
