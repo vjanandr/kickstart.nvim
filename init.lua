@@ -673,14 +673,26 @@ require('lazy').setup({
           local client = vim.lsp.get_client_by_id(event.data.client_id)
 
           if client and client.name == 'clangd' then
-            vim.diagnostic.disable(event.buf)
+            local function set_diagnostics_enabled(bufnr, enabled)
+              if vim.fn.has 'nvim-0.11' == 1 then
+                vim.diagnostic.enable(enabled, { bufnr = bufnr })
+              else
+                if enabled then
+                  vim.diagnostic.enable(bufnr)
+                else
+                  vim.diagnostic.disable(bufnr)
+                end
+              end
+            end
+
+            set_diagnostics_enabled(event.buf, false)
 
             vim.api.nvim_buf_create_user_command(event.buf, 'ClangdDiagnosticsToggle', function()
               local current = vim.diagnostic.is_enabled { bufnr = event.buf }
               if current then
-                vim.diagnostic.disable(event.buf)
+                set_diagnostics_enabled(event.buf, false)
               else
-                vim.diagnostic.enable(event.buf)
+                set_diagnostics_enabled(event.buf, true)
               end
             end, { desc = 'Toggle clangd diagnostics for current buffer' })
           end
