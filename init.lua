@@ -261,6 +261,26 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+local lastplace = vim.api.nvim_create_augroup('kickstart-lastplace', { clear = true })
+vim.api.nvim_create_autocmd('BufReadPost', {
+  group = lastplace,
+  callback = function(args)
+    local bufnr = args.buf
+    if vim.bo[bufnr].buftype ~= '' then
+      return
+    end
+    local ft = vim.bo[bufnr].filetype
+    if ft == 'gitcommit' or ft == 'gitrebase' then
+      return
+    end
+    local mark = vim.api.nvim_buf_get_mark(bufnr, '"')
+    local lcount = vim.api.nvim_buf_line_count(bufnr)
+    if mark[1] > 0 and mark[1] <= lcount then
+      pcall(vim.api.nvim_win_set_cursor, 0, { mark[1], mark[2] })
+    end
+  end,
+})
+
 vim.cmd [[
   augroup BlackBackground
     autocmd!
