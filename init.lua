@@ -851,7 +851,7 @@ require('lazy').setup({
       formatters = {
         clang_format = {
           prepend_args = {
-            "--style={BasedOnStyle: LLVM, BreakBeforeBraces: Custom, BraceWrapping: {AfterFunction: true, AfterControlStatement: false}}",
+            "--style={BasedOnStyle: LLVM, BreakBeforeBraces: Custom, BraceWrapping: {AfterFunction: true, AfterControlStatement: Never}}",
           },
         },
       },
