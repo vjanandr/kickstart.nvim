@@ -90,11 +90,26 @@ P.S. You can delete this when you're done too. It's your config now! :)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+-- Speed up Lua module loading (Neovim 0.9+)
+pcall(function()
+  if vim.loader and vim.loader.enable then
+    vim.loader.enable()
+  end
+end)
+
 -- Enable syntax highlighting
 vim.cmd 'syntax on'
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
+
+-- Disable unused language providers to reduce startup work
+vim.g.loaded_node_provider = 0
+vim.g.loaded_ruby_provider = 0
+vim.g.loaded_perl_provider = 0
+
+-- Improve UI responsiveness in remote/tmux sessions
+vim.o.lazyredraw = true
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -122,7 +137,16 @@ vim.o.showmode = false
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
 vim.schedule(function()
-  vim.o.clipboard = 'unnamedplus'
+  local function has_copier()
+    return vim.fn.executable('xclip') == 1
+      or vim.fn.executable('xsel') == 1
+      or vim.fn.executable('wl-copy') == 1
+      or vim.fn.executable('pbcopy') == 1
+      or (vim.env.TMUX and vim.env.TMUX ~= '')
+  end
+  if vim.fn.has('clipboard') == 1 and has_copier() then
+    vim.o.clipboard = 'unnamedplus'
+  end
 end)
 
 -- Enable break indent
@@ -148,6 +172,8 @@ vim.o.timeoutlen = 300
 vim.o.expandtab = true
 vim.o.tabstop = 2
 vim.o.shiftwidth = 2
+-- Limit syntax highlighting on very long lines for performance
+vim.o.synmaxcol = 240
 vim.o.softtabstop = 2
 
 -- Configure how new splits should be opened
@@ -353,6 +379,7 @@ require('lazy').setup({
   -- See `:help gitsigns` to understand what the configuration keys do
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
+    event = { 'BufReadPre', 'BufNewFile' },
     opts = {
       signs = {
         add = { text = '+' },
@@ -380,7 +407,7 @@ require('lazy').setup({
 
   { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
-    event = 'VimEnter', -- Sets the loading event to 'VimEnter'
+    event = 'VeryLazy',
     opts = {
       -- delay between pressing a key and opening which-key (milliseconds)
       -- this setting is independent of vim.o.timeoutlen
@@ -1193,6 +1220,7 @@ require('lazy').setup({
 
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
+    event = 'VeryLazy',
     config = function()
       -- Better Around/Inside textobjects
       --
@@ -1243,6 +1271,7 @@ require('lazy').setup({
   },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
+    event = { 'BufReadPost', 'BufNewFile' },
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
@@ -1252,12 +1281,29 @@ require('lazy').setup({
       auto_install = true,
       highlight = {
         enable = true,
+        disable = function(_, buf)
+          local name = vim.api.nvim_buf_get_name(buf)
+          local ok, st = pcall((vim.uv or vim.loop).fs_stat, name)
+          if ok and st and st.size and st.size > 200 * 1024 then
+            return true
+          end
+          local lc = vim.api.nvim_buf_line_count(buf)
+          return lc > 5000
+        end,
         -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
         --  If you are experiencing weird indenting issues, add the language to
         --  the list of additional_vim_regex_highlighting and disabled languages for indent.
         additional_vim_regex_highlighting = { 'ruby' },
       },
-      indent = { enable = true, disable = { 'ruby' } },
+      indent = {
+        enable = true,
+        disable = function(lang, buf)
+          if lang == 'ruby' then
+            return true
+          end
+          return vim.api.nvim_buf_line_count(buf) > 5000
+        end,
+      },
     },
     -- There are additional nvim-treesitter modules that you can use to interact
     -- with nvim-treesitter. You should go explore a few and see what interests you:
@@ -1342,7 +1388,72 @@ require('lazy').setup({
       lazy = '💤 ',
     },
   },
+  performance = {
+    rtp = {
+      disabled_plugins = {
+        'gzip',
+        'tarPlugin',
+        'tohtml',
+        'zipPlugin',
+        'tutor',
+        'vimball',
+        'vimballPlugin',
+        'spellfile_plugin',
+        -- keep netrw enabled for remote workflows
+      },
+    },
+  },
 })
+
+-- Lightweight, non-blocking cscope auto-add for C/C++ buffers
+do
+  local uv = (vim.uv or vim.loop)
+  local added = {}
+  local grp = vim.api.nvim_create_augroup('kickstart-cscope-auto', { clear = true })
+  local function dirname(p)
+    return vim.fn.fnamemodify(p, ':h')
+  end
+  local function realpath(p)
+    return uv.fs_realpath(p) or p
+  end
+  local function find_cscope(start)
+    local dir = realpath(dirname(start))
+    local last = ''
+    while dir and dir ~= last do
+      local cand = dir .. '/cscope.out'
+      local st = uv.fs_stat(cand)
+      if st and st.type == 'file' then
+        return cand
+      end
+      last = dir
+      dir = dirname(dir)
+    end
+    return nil
+  end
+  vim.api.nvim_create_autocmd('BufEnter', {
+    group = grp,
+    pattern = { '*.c', '*.h', '*.cpp', '*.hpp', '*.cc', '*.hh' },
+    callback = function(args)
+      if vim.fn.executable('cscope') ~= 1 then
+        return
+      end
+      local file = vim.api.nvim_buf_get_name(args.buf)
+      if file == '' then
+        return
+      end
+      local db = find_cscope(file)
+      if not db then
+        return
+      end
+      local key = realpath(db)
+      if added[key] then
+        return
+      end
+      pcall(vim.cmd, 'silent! cscope add ' .. vim.fn.fnameescape(db))
+      added[key] = true
+    end,
+  })
+end
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
