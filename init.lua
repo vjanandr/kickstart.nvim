@@ -671,6 +671,20 @@ require('lazy').setup({
           --
           -- When you move your cursor, the highlights will be cleared (the second autocommand).
           local client = vim.lsp.get_client_by_id(event.data.client_id)
+
+          if client and client.name == 'clangd' then
+            vim.diagnostic.disable(event.buf)
+
+            vim.api.nvim_buf_create_user_command(event.buf, 'ClangdDiagnosticsToggle', function()
+              local current = vim.diagnostic.is_enabled { bufnr = event.buf }
+              if current then
+                vim.diagnostic.disable(event.buf)
+              else
+                vim.diagnostic.enable(event.buf)
+              end
+            end, { desc = 'Toggle clangd diagnostics for current buffer' })
+          end
+
           if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
