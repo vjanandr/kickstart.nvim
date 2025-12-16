@@ -1158,6 +1158,19 @@ require('lazy').setup({
       -- set use_icons to true if you have a Nerd Font
       statusline.setup { use_icons = vim.g.have_nerd_font }
 
+      local function autoformat_status()
+        if vim.g.disable_autoformat or vim.b.disable_autoformat then
+          return 'AF:OFF'
+        end
+        return 'AF:ON'
+      end
+
+      local section_fileinfo = statusline.section_fileinfo
+      ---@diagnostic disable-next-line: duplicate-set-field
+      statusline.section_fileinfo = function(...)
+        return autoformat_status() .. ' ' .. section_fileinfo(...)
+      end
+
       -- You can configure sections in the statusline by overriding their
       -- default behavior. For example, here we set the section for
       -- cursor location to LINE:COLUMN
