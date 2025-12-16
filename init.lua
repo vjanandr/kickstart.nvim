@@ -834,6 +834,13 @@ require('lazy').setup({
     opts = {
       notify_on_error = false,
       format_on_save = false,
+      formatters = {
+        clang_format = {
+          prepend_args = {
+            "--style={BasedOnStyle: LLVM, BreakBeforeBraces: Allman}",
+          },
+        },
+      },
       formatters_by_ft = {
         c = { 'clang_format' },
         cpp = { 'clang_format' },
