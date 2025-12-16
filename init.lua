@@ -880,6 +880,9 @@ require('lazy').setup({
             return
           end
 
+          local ft = vim.bo[bufnr].filetype
+          local use_clang_format_only = (ft == 'c' or ft == 'cpp')
+
           local ok, gitsigns = pcall(require, 'gitsigns')
           if not ok or type(gitsigns.get_hunks) ~= 'function' then
             return
@@ -898,7 +901,8 @@ require('lazy').setup({
                 bufnr = bufnr,
                 async = false,
                 timeout_ms = 500,
-                lsp_format = 'fallback',
+                lsp_format = use_clang_format_only and 'never' or 'fallback',
+                formatters = use_clang_format_only and { 'clang_format' } or nil,
                 range = {
                   start = { start_line - 1, 0 },
                   ['end'] = { start_line - 1 + line_count, 0 },
