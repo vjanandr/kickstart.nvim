@@ -833,20 +833,7 @@ require('lazy').setup({
     },
     opts = {
       notify_on_error = false,
-      format_on_save = function(bufnr)
-        -- Disable "format_on_save lsp_fallback" for languages that don't
-        -- have a well standardized coding style. You can add additional
-        -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = {}
-        if disable_filetypes[vim.bo[bufnr].filetype] then
-          return nil
-        else
-          return {
-            timeout_ms = 500,
-            lsp_format = 'fallback',
-          }
-        end
-      end,
+      format_on_save = false,
       formatters_by_ft = {
         c = { 'clang_format' },
         cpp = { 'clang_format' },
@@ -858,6 +845,49 @@ require('lazy').setup({
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
       },
     },
+    config = function(_, opts)
+      local conform = require 'conform'
+      conform.setup(opts)
+
+      local group = vim.api.nvim_create_augroup('ConformFormatGitHunks', { clear = true })
+      vim.api.nvim_create_autocmd('BufWritePre', {
+        group = group,
+        callback = function(args)
+          local bufnr = args.buf
+          local disable_filetypes = {}
+          if disable_filetypes[vim.bo[bufnr].filetype] then
+            return
+          end
+
+          local ok, gitsigns = pcall(require, 'gitsigns')
+          if not ok or type(gitsigns.get_hunks) ~= 'function' then
+            return
+          end
+
+          local hunks = gitsigns.get_hunks(bufnr)
+          if not hunks or vim.tbl_isempty(hunks) then
+            return
+          end
+
+          for _, hunk in ipairs(hunks) do
+            local start_line = hunk.added and hunk.added.start or nil
+            local line_count = hunk.added and hunk.added.count or nil
+            if start_line and line_count and line_count > 0 then
+              conform.format {
+                bufnr = bufnr,
+                async = false,
+                timeout_ms = 500,
+                lsp_format = 'fallback',
+                range = {
+                  start = { start_line - 1, 0 },
+                  ['end'] = { start_line - 1 + line_count, 0 },
+                },
+              }
+            end
+          end
+        end,
+      })
+    end,
   },
 
   { -- Autocompletion
