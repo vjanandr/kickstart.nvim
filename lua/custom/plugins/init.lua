@@ -281,4 +281,28 @@ return {
       zindex = 20,
     },
   },
+  {
+    'dkarter/bullets.vim',
+    ft = { 'markdown', 'text' },
+  },
+  {
+    'folke/zen-mode.nvim',
+    keys = {
+      { '<leader>nz', function() require('zen-mode').toggle() end, desc = 'Notes: Zen mode' },
+    },
+    opts = {
+      window = {
+        backdrop = 0.95,
+        width = 0.6,
+        options = {
+          number = false,
+          relativenumber = false,
+          signcolumn = 'no',
+          cursorline = false,
+          cursorcolumn = false,
+          foldcolumn = '0',
+        },
+      },
+    },
+  },
 }

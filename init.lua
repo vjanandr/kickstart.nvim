@@ -241,6 +241,8 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 -- Alternative: Use Telescope for fuzzy function finding
 vim.keymap.set('n', '<leader>tf', ':Telescope treesitter<CR>', { desc = 'Find functions with Telescope' })
 
+vim.keymap.set('n', '<leader>nt', '<cmd>TableModeToggle<CR>', { desc = 'Notes: table mode' })
+
 -- Smarter gf: if under cursor is "filename:line[:col]", use gF to jump to that location
 vim.keymap.set('n', 'gf', function()
   local cw = vim.fn.expand('<cWORD>')
@@ -295,6 +297,22 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
   callback = function()
     vim.hl.on_yank()
+  end,
+})
+
+vim.filetype.add({ extension = { txt = 'markdown' } })
+
+local notes_au = vim.api.nvim_create_augroup('notes', { clear = true })
+vim.api.nvim_create_autocmd('FileType', {
+  group = notes_au,
+  pattern = { 'markdown', 'text' },
+  callback = function()
+    vim.opt_local.wrap = true
+    vim.opt_local.linebreak = true
+    vim.opt_local.breakindent = true
+    vim.opt_local.spell = true
+    vim.opt_local.conceallevel = 2
+    vim.opt_local.colorcolumn = ''
   end,
 })
 
