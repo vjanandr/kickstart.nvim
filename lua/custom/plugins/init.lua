@@ -305,4 +305,12 @@ return {
       },
     },
   },
+  {
+    'dhruvasagar/vim-table-mode',
+    ft = { 'markdown', 'rst', 'org', 'text' },
+    keys = {
+      { '<leader>t[', '<Plug>(table-mode-insert-column-before)', mode = 'n', desc = 'Table: insert column before' },
+      { '<leader>t]', '<Plug>(table-mode-insert-column-after)', mode = 'n', desc = 'Table: insert column after' },
+    },
+  },
 }
