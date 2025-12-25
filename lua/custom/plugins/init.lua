@@ -311,6 +311,8 @@ return {
     keys = {
       { '<leader>t[', '<Plug>(table-mode-insert-column-before)', mode = 'n', desc = 'Table: insert column before' },
       { '<leader>t]', '<Plug>(table-mode-insert-column-after)', mode = 'n', desc = 'Table: insert column after' },
+      { '<leader>t-', '<Plug>(table-mode-insert-row-before)', mode = 'n', desc = 'Table: insert row above' },
+      { '<leader>t=', '<Plug>(table-mode-insert-row-after)', mode = 'n', desc = 'Table: insert row below' },
     },
   },
 }
