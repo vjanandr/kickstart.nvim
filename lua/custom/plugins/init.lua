@@ -330,6 +330,29 @@ return {
         end,
         desc = 'Buffers',
       },
+      {
+        '<leader>tS',
+        function()
+          require('telescope.builtin').live_grep({
+            cwd = vim.fn.getcwd(),
+            additional_args = function()
+              return { '--hidden', '--glob', '!.git/*' }
+            end,
+          })
+        end,
+        desc = 'Live grep (cwd)',
+      },
+      {
+        '<leader>tF',
+        function()
+          require('telescope.builtin').find_files({
+            cwd = vim.fn.getcwd(),
+            hidden = true,
+            follow = true,
+          })
+        end,
+        desc = 'Find files (cwd)',
+      },
     },
   },
 }
