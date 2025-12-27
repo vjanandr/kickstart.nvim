@@ -315,4 +315,21 @@ return {
       { '<leader>t=', '<Plug>(table-mode-insert-row-after)', mode = 'n', desc = 'Table: insert row below' },
     },
   },
+  {
+    'nvim-telescope/telescope.nvim',
+    keys = {
+      {
+        '<leader>tb',
+        function()
+          require('telescope.builtin').buffers({
+            sort_mru = true,
+            ignore_current_buffer = true,
+            previewer = false,
+            show_all_buffers = true,
+          })
+        end,
+        desc = 'Buffers',
+      },
+    },
+  },
 }
