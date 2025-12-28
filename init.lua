@@ -967,6 +967,7 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'rust-analyzer', -- Rust LSP
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -1027,6 +1028,7 @@ require('lazy').setup({
         c = { 'clang_format' },
         cpp = { 'clang_format' },
         lua = { 'stylua' },
+        rust = { 'rustfmt' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -1394,7 +1396,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'cpp', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'cpp', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'rust', 'toml' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -1429,6 +1431,40 @@ require('lazy').setup({
     --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
     --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+  },
+  {
+    'mrcjkb/rustaceanvim',
+    ft = { 'rust' },
+    init = function()
+      vim.g.rustaceanvim = {
+        server = {
+          default_settings = {
+            ['rust-analyzer'] = {
+              cargo = { allFeatures = true },
+              checkOnSave = { command = 'clippy' },
+            },
+          },
+        },
+      }
+    end,
+    keys = {
+      { '<leader>rr', '<cmd>RustLsp runnables<cr>', mode = 'n', desc = 'Rust: runnables' },
+      { '<leader>re', '<cmd>RustLsp expandMacro<cr>', mode = 'n', desc = 'Rust: expand macro' },
+      { '<leader>rx', '<cmd>RustLsp explainError<cr>', mode = 'n', desc = 'Rust: explain error' },
+    },
+  },
+  {
+    'saecki/crates.nvim',
+    ft = { 'toml' },
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    config = function()
+      require('crates').setup {}
+    end,
+    keys = {
+      { '<leader>cv', function() require('crates').show_versions_popup() end, mode = 'n', desc = 'Crates: versions' },
+      { '<leader>cu', function() require('crates').upgrade_crate() end, mode = 'n', desc = 'Crates: upgrade' },
+      { '<leader>cU', function() require('crates').upgrade_all_crates() end, mode = 'n', desc = 'Crates: upgrade all' },
+    },
   },
 
   -- Markdown support plugins
