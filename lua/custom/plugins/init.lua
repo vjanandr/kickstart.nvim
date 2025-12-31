@@ -304,7 +304,13 @@ return {
     init = function()
       vim.g.bookmark_save_per_working_dir = 1
       vim.g.bookmark_auto_save = 1
-      vim.g.bookmark_highlight_lines = 1
+      vim.g.bookmark_highlight_lines = 0
+      vim.api.nvim_create_user_command('BookmarkHighlightToggle', function()
+        local v = vim.g.bookmark_highlight_lines or 0
+        v = (v == 0) and 1 or 0
+        vim.g.bookmark_highlight_lines = v
+        vim.notify('Bookmark line highlight: ' .. (v == 1 and 'ON' or 'OFF'))
+      end, { desc = 'Toggle vim-bookmarks line highlighting' })
     end,
   },
   {
@@ -318,8 +324,62 @@ return {
       { '<leader>bf', function() require('telescope').extensions.vim_bookmarks.current_file() end, desc = 'Bookmarks: current file' },
     },
   },
+  { -- Quickfix enhancements for large result sets
+    'kevinhwang91/nvim-bqf',
+    ft = 'qf',
+    opts = {},
+  },
+  { -- Highlight search matches with counts
+    'kevinhwang91/nvim-hlslens',
+    event = 'VeryLazy',
+    config = function()
+      require('hlslens').setup {}
+    end,
+  },
+  { -- Scrollbar with search markers (pairs nicely with hlslens)
+    'petertriho/nvim-scrollbar',
+    event = 'VeryLazy',
+    config = function()
+      require('scrollbar').setup {}
+      pcall(function()
+        require('scrollbar.handlers.search').setup()
+      end)
+    end,
+  },
+  { -- Basic highlighting for .log files
+    'mtdl9/vim-log-highlighting',
+    ft = { 'log', 'text' },
+  },
+  { -- Session management
+    'folke/persistence.nvim',
+    opts = {},
+    keys = {
+      { '<leader>qs', function() require('persistence').load() end, desc = 'Session: restore' },
+      { '<leader>ql', function() require('persistence').load { last = true } end, desc = 'Session: restore last' },
+      { '<leader>qd', function() require('persistence').stop() end, desc = 'Session: stop' },
+    },
+  },
+  { -- Integrated terminal (great for tail -f)
+    'akinsho/toggleterm.nvim',
+    version = '*',
+    opts = { open_mapping = [[<c-\>]], direction = 'float' },
+    keys = {
+      { '<leader>to', '<cmd>ToggleTerm<cr>', desc = 'Terminal: toggle' },
+    },
+  },
   {
     'nvim-telescope/telescope.nvim',
+    dependencies = {
+      { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
+      'nvim-telescope/telescope-live-grep-args.nvim',
+    },
+    config = function()
+      local ok, telescope = pcall(require, 'telescope')
+      if ok then
+        pcall(telescope.load_extension, 'fzf')
+        pcall(telescope.load_extension, 'live_grep_args')
+      end
+    end,
     keys = {
       {
         '<leader>tb',
@@ -355,6 +415,13 @@ return {
           })
         end,
         desc = 'Find files (cwd)',
+      },
+      {
+        '<leader>tG',
+        function()
+          require('telescope').extensions.live_grep_args.live_grep_args()
+        end,
+        desc = 'Live grep (args)',
       },
     },
   },

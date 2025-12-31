@@ -1387,6 +1387,64 @@ require('lazy').setup({
         return '%2l:%-2v'
       end
 
+      -- Large-file guard: disable nonessential visuals for huge files
+      do
+        local grp = vim.api.nvim_create_augroup('kickstart-large-file-guard', { clear = true })
+        local uv = (vim.uv or vim.loop)
+        local function is_large(buf)
+          local name = vim.api.nvim_buf_get_name(buf)
+          if name == '' then return false end
+          local ok, st = pcall(uv.fs_stat, name)
+          if ok and st and st.size and st.size > 500 * 1024 then -- >500KB
+            return true
+          end
+          local lc = vim.api.nvim_buf_line_count(buf)
+          return lc > 100000 -- >100k lines
+        end
+        local function disable_visuals()
+          pcall(function()
+            local ok_hl, hlslens = pcall(require, 'hlslens')
+            if ok_hl and hlslens and type(hlslens.stop) == 'function' then hlslens.stop() end
+          end)
+          pcall(function()
+            local ok_sb, scrollbar = pcall(require, 'scrollbar')
+            if ok_sb and scrollbar and type(scrollbar.clear) == 'function' then scrollbar.clear() end
+          end)
+        end
+        vim.api.nvim_create_autocmd('BufReadPost', {
+          group = grp,
+          callback = function(args)
+            local buf = args.buf
+            vim.b[buf].large_file_mode = is_large(buf) and true or false
+            if vim.b[buf].large_file_mode then
+              disable_visuals()
+            end
+          end,
+        })
+        vim.api.nvim_create_autocmd({ 'CursorMoved', 'WinScrolled', 'CmdlineLeave', 'InsertEnter' }, {
+          group = grp,
+          callback = function(args)
+            if vim.b[args.buf].large_file_mode then
+              disable_visuals()
+            end
+          end,
+        })
+        vim.api.nvim_create_user_command('LargeFileVisualsToggle', function()
+          local buf = vim.api.nvim_get_current_buf()
+          vim.b[buf].large_file_mode = not vim.b[buf].large_file_mode
+          if vim.b[buf].large_file_mode then
+            disable_visuals()
+            vim.notify('Large-file visuals: OFF for this buffer')
+          else
+            pcall(function()
+              local ok_sb, scrollbar = pcall(require, 'scrollbar')
+              if ok_sb and scrollbar and type(scrollbar.render) == 'function' then scrollbar.render() end
+            end)
+            vim.notify('Large-file visuals: ON for this buffer')
+          end
+        end, { desc = 'Toggle large-file visual guard for current buffer' })
+      end
+
       -- ... and there is more!
       --  Check out: https://github.com/echasnovski/mini.nvim
     end,
