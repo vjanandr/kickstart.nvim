@@ -1214,10 +1214,12 @@ require('lazy').setup({
           { name = 'path' },
           { name = 'buffer' },
         }),
+        experimental = { ghost_text = true },
         formatting = {
           format = require('lspkind').cmp_format { mode = 'symbol_text', maxwidth = 50 },
         },
       }
+      vim.api.nvim_set_hl(0, 'CmpGhostText', { link = 'Comment' })
     end,
   },
   {
