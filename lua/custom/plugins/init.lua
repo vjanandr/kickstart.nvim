@@ -308,6 +308,9 @@ return {
   {
     'dhruvasagar/vim-table-mode',
     ft = { 'markdown', 'rst', 'org', 'text' },
+    init = function()
+      vim.g.table_mode_auto_align = 1
+    end,
     keys = {
       { '<leader>t[', '<Plug>(table-mode-insert-column-before)', mode = 'n', desc = 'Table: insert column before' },
       { '<leader>t]', '<Plug>(table-mode-insert-column-after)', mode = 'n', desc = 'Table: insert column after' },
