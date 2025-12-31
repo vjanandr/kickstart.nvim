@@ -296,8 +296,20 @@ return {
     keys = {
       { '<leader>t[', '<Plug>(table-mode-insert-column-before)', mode = 'n', desc = 'Table: insert column before' },
       { '<leader>t]', '<Plug>(table-mode-insert-column-after)', mode = 'n', desc = 'Table: insert column after' },
-      { '<leader>t-', '<Plug>(table-mode-insert-row-before)', mode = 'n', desc = 'Table: insert row above' },
-      { '<leader>t=', '<Plug>(table-mode-insert-row-after)', mode = 'n', desc = 'Table: insert row below' },
+      {
+        '<leader>t-',
+        function()
+          local line = vim.api.nvim_get_current_line()
+          local parts = vim.split(line, '|', { plain = true })
+          local cols = math.max(#parts - 2, 1)
+          local row = '|' .. string.rep('-----|', cols)
+          local cur = vim.api.nvim_win_get_cursor(0)
+          local row_idx = cur[1] -- 1-based
+          vim.api.nvim_buf_set_lines(0, row_idx, row_idx, false, { row })
+        end,
+        mode = 'n',
+        desc = 'Table: insert dashed separator row',
+      },
     },
   },
   {
