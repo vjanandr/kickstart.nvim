@@ -1371,10 +1371,27 @@ require('lazy').setup({
         return 'AF:ON'
       end
 
+      local function tablemode_status()
+        if vim.fn.exists('*tablemode#IsActive') == 1 then
+          local ok, res = pcall(function()
+            return vim.fn['tablemode#IsActive']()
+          end)
+          if ok and res == 1 then
+            return 'TBL:ON'
+          else
+            return 'TBL:OFF'
+          end
+        end
+        if vim.b.table_mode_active == 1 or vim.g.table_mode_active == 1 then
+          return 'TBL:ON'
+        end
+        return 'TBL:OFF'
+      end
+
       local section_fileinfo = statusline.section_fileinfo
       ---@diagnostic disable-next-line: duplicate-set-field
       statusline.section_fileinfo = function(...)
-        return autoformat_status() .. ' ' .. section_fileinfo(...)
+        return autoformat_status() .. ' ' .. tablemode_status() .. ' ' .. section_fileinfo(...)
       end
 
       -- You can configure sections in the statusline by overriding their
