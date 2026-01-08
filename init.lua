@@ -1039,6 +1039,8 @@ require('lazy').setup({
     config = function(_, opts)
       local conform = require 'conform'
       conform.setup(opts)
+      -- Disable autoformat on save by default (can be toggled globally or per-buffer)
+      vim.g.disable_autoformat = true
 
       local group = vim.api.nvim_create_augroup('ConformFormatGitHunks', { clear = true })
       local uv = (vim.uv or vim.loop)
@@ -1137,6 +1139,9 @@ require('lazy').setup({
       vim.api.nvim_create_user_command('AutoFormatToggle', function()
         vim.b.disable_autoformat = not vim.b.disable_autoformat
       end, { desc = 'Toggle autoformat on save for current buffer' })
+      pcall(vim.api.nvim_create_user_command, 'AutoFormatGlobalToggle', function()
+        vim.g.disable_autoformat = not vim.g.disable_autoformat
+      end, { desc = 'Toggle autoformat on save globally' })
     end,
   },
 
