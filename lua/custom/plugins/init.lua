@@ -1,6 +1,30 @@
 return {
   -- Override LazyVim default colorscheme
   {
+    'zbirenbaum/copilot.lua',
+    cmd = 'Copilot',
+    event = 'InsertEnter',
+    config = function()
+      require('copilot').setup {
+        panel = { enabled = true },
+        suggestion = { enabled = true },
+      }
+    end,
+  },
+  {
+    'CopilotC-Nvim/CopilotChat.nvim',
+    branch = 'canary',
+    cmd = { 'CopilotChat', 'CopilotChatOpen', 'CopilotChatToggle' },
+    dependencies = {
+      { 'zbirenbaum/copilot.lua' },
+      { 'nvim-lua/plenary.nvim' },
+      { 'MunifTanjim/nui.nvim' },
+    },
+    config = function()
+      require('CopilotChat').setup {}
+    end,
+  },
+  {
     'dhananjaylatkar/cscope_maps.nvim',
     dependencies = { 'nvim-telescope/telescope.nvim' }, -- optional, for nice picker UI
     config = function()
