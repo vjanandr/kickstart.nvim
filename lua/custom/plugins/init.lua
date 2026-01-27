@@ -40,7 +40,7 @@ return {
     end,
   },
   {
-    'ggandor/leap.nvim',
+    url = 'https://codeberg.org/andyg/leap.nvim',
     config = function()
       vim.keymap.set({ 'n', 'x', 'o' }, 'gs', '<Plug>(leap-forward)')
       vim.keymap.set({ 'n', 'x', 'o' }, 'gS', '<Plug>(leap-backward)')
