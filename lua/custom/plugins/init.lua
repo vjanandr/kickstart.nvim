@@ -290,6 +290,18 @@ return {
   {
     'dkarter/bullets.vim',
     ft = { 'markdown', 'text' },
+    init = function()
+      -- Enable bullets inside table cells
+      vim.g.bullets_enabled_file_types = { 'markdown', 'text', 'gitcommit' }
+      vim.g.bullets_enable_in_empty_buffers = 0
+      -- Don't delete bullets when pressing backspace on empty line
+      vim.g.bullets_delete_last_bullet_if_empty = 0
+      -- Allow bullets and lists within table cells
+      vim.g.bullets_custom_mappings = {
+        { 'imap', '<CR>', '<Plug>(bullets-newline)' },
+        { 'nmap', 'o', '<Plug>(bullets-newline)' },
+      }
+    end,
   },
   {
     'folke/zen-mode.nvim',
