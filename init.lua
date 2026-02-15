@@ -1411,10 +1411,6 @@ require('lazy').setup({
             local ok_hl, hlslens = pcall(require, 'hlslens')
             if ok_hl and hlslens and type(hlslens.stop) == 'function' then hlslens.stop() end
           end)
-          pcall(function()
-            local ok_sb, scrollbar = pcall(require, 'scrollbar')
-            if ok_sb and scrollbar and type(scrollbar.clear) == 'function' then scrollbar.clear() end
-          end)
         end
         vim.api.nvim_create_autocmd('BufReadPost', {
           group = grp,
@@ -1441,10 +1437,6 @@ require('lazy').setup({
             disable_visuals()
             vim.notify('Large-file visuals: OFF for this buffer')
           else
-            pcall(function()
-              local ok_sb, scrollbar = pcall(require, 'scrollbar')
-              if ok_sb and scrollbar and type(scrollbar.render) == 'function' then scrollbar.render() end
-            end)
             vim.notify('Large-file visuals: ON for this buffer')
           end
         end, { desc = 'Toggle large-file visual guard for current buffer' })
