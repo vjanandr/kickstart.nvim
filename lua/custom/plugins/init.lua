@@ -383,16 +383,7 @@ return {
       require('hlslens').setup {}
     end,
   },
-  { -- Scrollbar with search markers (pairs nicely with hlslens)
-    'petertriho/nvim-scrollbar',
-    event = 'VeryLazy',
-    config = function()
-      require('scrollbar').setup {}
-      pcall(function()
-        require('scrollbar.handlers.search').setup()
-      end)
-    end,
-  },
+
   { -- Basic highlighting for .log files
     'mtdl9/vim-log-highlighting',
     ft = { 'log', 'text' },
