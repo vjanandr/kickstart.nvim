@@ -1447,14 +1447,12 @@ require('lazy').setup({
     end,
   },
   { -- Highlight, edit, and navigate code
+    -- Using the stable 'master' branch for compatibility
     'nvim-treesitter/nvim-treesitter',
-    event = { 'BufReadPost', 'BufNewFile' },
+    branch = 'master',
     build = ':TSUpdate',
-    -- We use 'config' instead of 'main' or 'opts' to avoid the path error
     config = function()
-      local configs = require('nvim-treesitter.configs')
-
-      configs.setup({
+      require('nvim-treesitter.configs').setup({
         ensure_installed = {
           'bash', 'c', 'cpp', 'diff', 'html', 'lua', 'luadoc',
           'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'rust', 'toml'
@@ -1464,7 +1462,7 @@ require('lazy').setup({
           enable = true,
           disable = function(_, buf)
             local name = vim.api.nvim_buf_get_name(buf)
-            local ok, st = pcall((vim.uv or vim.loop).fs_stat, name)
+            local ok, st = pcall(vim.uv.fs_stat, name)
             if ok and st and st.size and st.size > 200 * 1024 then
               return true
             end
