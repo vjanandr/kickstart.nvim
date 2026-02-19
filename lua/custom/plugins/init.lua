@@ -12,12 +12,12 @@ return {
           enabled = true,
           auto_trigger = true,
           keymap = {
-            accept = '<M-l>',
-            accept_word = '<M-k>',
-            accept_line = '<M-j>',
-            next = '<M-]>',
-            prev = '<M-[>',
-            dismiss = '<C-]>',
+            accept = '<Tab>',
+            accept_word = false,
+            accept_line = false,
+            next = '<C-j>',
+            prev = '<C-k>',
+            dismiss = '<C-e>',
           },
         },
       }
