@@ -6,6 +6,7 @@ return {
     event = 'InsertEnter',
     config = function()
       require('copilot').setup {
+        copilot_node_command = vim.fn.expand('$HOME/.nvm/versions/node/v24.13.1/bin/node'),
         panel = { enabled = true },
         suggestion = {
           enabled = true,
@@ -20,19 +21,6 @@ return {
           },
         },
       }
-    end,
-  },
-  {
-    'CopilotC-Nvim/CopilotChat.nvim',
-    branch = 'main',
-    cmd = { 'CopilotChat', 'CopilotChatOpen', 'CopilotChatToggle' },
-    dependencies = {
-      { 'zbirenbaum/copilot.lua' },
-      { 'nvim-lua/plenary.nvim' },
-      { 'MunifTanjim/nui.nvim' },
-    },
-    config = function()
-      require('CopilotChat').setup {}
     end,
   },
   {
