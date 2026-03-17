@@ -1452,7 +1452,7 @@ require('lazy').setup({
     branch = 'master',
     build = ':TSUpdate',
     config = function()
-      require('nvim-treesitter.configs').setup({
+      require('nvim-treesitter').setup({
         ensure_installed = {
           'bash', 'c', 'cpp', 'diff', 'html', 'lua', 'luadoc',
           'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'rust', 'toml'
