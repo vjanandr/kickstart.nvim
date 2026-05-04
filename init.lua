@@ -1455,7 +1455,7 @@ require('lazy').setup({
       require('nvim-treesitter').setup({
         ensure_installed = {
           'bash', 'c', 'cpp', 'diff', 'html', 'lua', 'luadoc',
-          'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'rust', 'toml'
+          'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'rust', 'toml', 'yaml'
         },
         auto_install = true,
         highlight = {
@@ -1481,6 +1481,48 @@ require('lazy').setup({
           end,
         },
       })
+
+      -- Patch nvim-treesitter master directives broken on nvim 0.12.
+      -- In 0.12, query match[capture_id] returns a *list* of nodes, not a
+      -- single node. nvim-treesitter master hasn't migrated, so calls like
+      -- vim.treesitter.get_node_text(match[id], buf) fail with
+      -- "attempt to call method 'range' (a nil value)".
+      local tsq = vim.treesitter.query
+      local html_script_type_languages = {
+        importmap = 'json',
+        module = 'javascript',
+        ['application/ecmascript'] = 'javascript',
+        ['text/ecmascript'] = 'javascript',
+      }
+      local md_injection_aliases = {
+        ex = 'elixir', pl = 'perl', sh = 'bash', uxn = 'uxntal', ts = 'typescript',
+      }
+      local function first_node(n)
+        if type(n) == 'table' then return n[1] end
+        return n
+      end
+      tsq.add_directive('set-lang-from-info-string!', function(match, _, bufnr, pred, metadata)
+        local node = first_node(match[pred[2]])
+        if not node then return end
+        local ok, text = pcall(vim.treesitter.get_node_text, node, bufnr)
+        if not ok or not text then return end
+        local alias = text:lower()
+        local ftmatch = vim.filetype.match { filename = 'a.' .. alias }
+        metadata['injection.language'] = ftmatch or md_injection_aliases[alias] or alias
+      end, { force = true, all = false })
+      tsq.add_directive('set-lang-from-mimetype!', function(match, _, bufnr, pred, metadata)
+        local node = first_node(match[pred[2]])
+        if not node then return end
+        local ok, val = pcall(vim.treesitter.get_node_text, node, bufnr)
+        if not ok or not val then return end
+        local configured = html_script_type_languages[val]
+        if configured then
+          metadata['injection.language'] = configured
+        else
+          local parts = vim.split(val, '/', {})
+          metadata['injection.language'] = parts[#parts]
+        end
+      end, { force = true, all = false })
     end,
   },
   {
@@ -1533,17 +1575,14 @@ require('lazy').setup({
     'iamcco/markdown-preview.nvim',
     cmd = { 'MarkdownPreviewToggle', 'MarkdownPreview', 'MarkdownPreviewStop' },
     ft = 'markdown',
-    config = function()
-      -- Terminal-friendly configuration
-      vim.g.mkdp_browser = 'w3m' -- or 'lynx', 'elinks', 'links'
-      vim.g.mkdp_echo_preview_url = 1 -- Show URL in command line
-      vim.g.mkdp_open_to_the_world = 1 -- Allow network access
-      vim.g.mkdp_port = '8080' -- Fixed port for easier access
-
-      -- Install dependencies when the plugin loads
-      if vim.fn.executable 'npm' == 1 then
-        vim.fn['mkdp#util#install']()
-      end
+    build = function()
+      vim.fn['mkdp#util#install']()
+    end,
+    init = function()
+      vim.g.mkdp_browser = 'w3m'
+      vim.g.mkdp_echo_preview_url = 1
+      vim.g.mkdp_open_to_the_world = 1
+      vim.g.mkdp_port = '8080'
     end,
   },
 

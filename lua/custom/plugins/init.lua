@@ -370,6 +370,16 @@ return {
       { '<leader>to', '<cmd>ToggleTerm<cr>', desc = 'Terminal: toggle' },
     },
   },
+  { -- Augment: inline completions only. Chat lives in CodeCompanion / claudecode.nvim.
+    'augmentcode/augment.vim',
+    event = 'InsertEnter',
+    init = function()
+      vim.g.augment_disable_tab_mapping = true
+    end,
+    config = function()
+      vim.keymap.set('i', '<C-y>', '<cmd>call augment#Accept()<cr>', { desc = 'Augment: accept suggestion' })
+    end,
+  },
   {
     'nvim-telescope/telescope.nvim',
     dependencies = {
@@ -427,5 +437,140 @@ return {
         desc = 'Live grep (args)',
       },
     },
+  },
+
+  -- ===== AI-first editor stack =====
+
+  { -- Claude Code IDE integration: Claude reads selection, opens diffs, applies edits
+    'coder/claudecode.nvim',
+    config = true,
+    cmd = {
+      'ClaudeCode',
+      'ClaudeCodeFocus',
+      'ClaudeCodeAdd',
+      'ClaudeCodeSend',
+      'ClaudeCodeTreeAdd',
+      'ClaudeCodeDiffAccept',
+      'ClaudeCodeDiffDeny',
+    },
+    keys = {
+      { '<leader>cc', '<cmd>ClaudeCode<cr>', desc = 'Claude Code: toggle' },
+      { '<leader>cf', '<cmd>ClaudeCodeFocus<cr>', desc = 'Claude Code: focus' },
+      { '<leader>cr', '<cmd>ClaudeCode --resume<cr>', desc = 'Claude Code: resume' },
+      { '<leader>cR', '<cmd>ClaudeCode --continue<cr>', desc = 'Claude Code: continue last' },
+      { '<leader>cb', '<cmd>ClaudeCodeAdd %<cr>', desc = 'Claude Code: add current buffer' },
+      { '<leader>cs', '<cmd>ClaudeCodeSend<cr>', mode = 'v', desc = 'Claude Code: send selection' },
+      { '<leader>cda', '<cmd>ClaudeCodeDiffAccept<cr>', desc = 'Claude Code: accept diff' },
+      { '<leader>cdd', '<cmd>ClaudeCodeDiffDeny<cr>', desc = 'Claude Code: deny diff' },
+    },
+  },
+
+  { -- CodeCompanion: API-direct chat + inline edits with first-class Anthropic adapter
+    'olimorris/codecompanion.nvim',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'nvim-treesitter/nvim-treesitter',
+    },
+    cmd = { 'CodeCompanion', 'CodeCompanionChat', 'CodeCompanionActions', 'CodeCompanionCmd' },
+    opts = {
+      strategies = {
+        chat = { adapter = 'anthropic' },
+        inline = { adapter = 'anthropic' },
+        cmd = { adapter = 'anthropic' },
+      },
+      adapters = {
+        anthropic = function()
+          return require('codecompanion.adapters').extend('anthropic', {
+            schema = {
+              model = { default = 'claude-opus-4-7' },
+            },
+          })
+        end,
+      },
+      display = {
+        chat = {
+          show_settings = true,
+          window = { position = 'right', width = 0.4 },
+        },
+      },
+    },
+    keys = {
+      { '<leader>mc', '<cmd>CodeCompanionChat Toggle<cr>', mode = { 'n', 'v' }, desc = 'CodeCompanion: chat toggle' },
+      { '<leader>ma', '<cmd>CodeCompanionActions<cr>', mode = { 'n', 'v' }, desc = 'CodeCompanion: actions' },
+      { '<leader>me', ':CodeCompanion ', mode = { 'n', 'v' }, desc = 'CodeCompanion: inline edit' },
+      { 'ga', '<cmd>CodeCompanionChat Add<cr>', mode = 'v', desc = 'CodeCompanion: add selection to chat' },
+    },
+  },
+
+  { -- Render markdown / AI chat buffers with proper styling
+    'MeanderingProgrammer/render-markdown.nvim',
+    ft = { 'markdown', 'codecompanion', 'Avante', 'copilot-chat' },
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter',
+      'nvim-tree/nvim-web-devicons',
+    },
+    opts = {
+      file_types = { 'markdown', 'codecompanion' },
+      render_modes = true,
+      heading = { sign = false },
+      code = { sign = false, width = 'block', right_pad = 1 },
+      checkbox = { enabled = true },
+    },
+  },
+
+  { -- Multi-file diff review for AI's agentic edits
+    'sindrets/diffview.nvim',
+    cmd = {
+      'DiffviewOpen',
+      'DiffviewClose',
+      'DiffviewFileHistory',
+      'DiffviewToggleFiles',
+      'DiffviewFocusFiles',
+      'DiffviewRefresh',
+    },
+    keys = {
+      { '<leader>dv', '<cmd>DiffviewOpen<cr>', desc = 'Diffview: open (working tree)' },
+      { '<leader>dh', '<cmd>DiffviewFileHistory %<cr>', desc = 'Diffview: file history' },
+      { '<leader>dH', '<cmd>DiffviewFileHistory<cr>', desc = 'Diffview: repo history' },
+      { '<leader>dx', '<cmd>DiffviewClose<cr>', desc = 'Diffview: close' },
+    },
+    opts = {
+      enhanced_diff_hl = true,
+      view = {
+        merge_tool = { layout = 'diff3_mixed' },
+      },
+    },
+  },
+
+  { -- Resolve merge conflicts produced by agent edits
+    'akinsho/git-conflict.nvim',
+    version = '*',
+    event = { 'BufReadPre', 'BufNewFile' },
+    opts = {
+      default_mappings = true,
+      default_commands = true,
+      list_opener = 'copen',
+    },
+  },
+
+  { -- Tag anchor files so AI plugins can grab them by name
+    'cbochs/grapple.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    cmd = 'Grapple',
+    opts = {
+      scope = 'git',
+    },
+    keys = {
+      { '<leader>gM', '<cmd>Grapple toggle<cr>', desc = 'Grapple: tag/untag file' },
+      { '<leader>gm', '<cmd>Grapple toggle_tags<cr>', desc = 'Grapple: list tags' },
+      { '<leader>gn', '<cmd>Grapple cycle_tags next<cr>', desc = 'Grapple: next tag' },
+      { '<leader>gp', '<cmd>Grapple cycle_tags prev<cr>', desc = 'Grapple: previous tag' },
+    },
+  },
+
+  { -- Prettier vim.ui.input / vim.ui.select used by AI plugin prompts
+    'stevearc/dressing.nvim',
+    event = 'VeryLazy',
+    opts = {},
   },
 }
