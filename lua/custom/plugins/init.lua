@@ -124,8 +124,8 @@ return {
           always_select_remote_on_create = false, -- always give prompt to select base remote repo when creating PRs
         },
         file_panel = {
-          size = 10, -- changed files panel rows
-          use_icons = true, -- use web-devicons in file panel (if false, nvim-web-devicons does not need to be installed)
+          size = 10,
+          icons = true,
         },
         mappings = {
           issue = {
