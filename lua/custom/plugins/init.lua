@@ -301,7 +301,7 @@ return {
   },
   {
     'dhruvasagar/vim-table-mode',
-    ft = { 'markdown', 'rst', 'org', 'text' },
+    lazy = false,
     init = function()
       vim.g.table_mode_auto_align = 1
     end,
