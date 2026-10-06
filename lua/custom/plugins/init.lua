@@ -372,6 +372,7 @@ return {
   },
   { -- Augment: inline completions only. Chat lives in CodeCompanion / claudecode.nvim.
     'augmentcode/augment.vim',
+    enabled = false, -- Temporarily disabled.
     event = 'InsertEnter',
     init = function()
       vim.g.augment_disable_tab_mapping = true
