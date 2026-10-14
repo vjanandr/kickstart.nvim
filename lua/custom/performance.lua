@@ -202,13 +202,15 @@ function M.setup()
   M.setup_performance_commands()
   M.setup_diagnostic_optimizations()
   
-  -- Defer heavy setup to after startup
-  vim.defer_fn(function()
-    -- Only setup if plugins are loaded
-    if pcall(require, 'telescope') then
-      M.setup_telescope_optimizations()
-    end
-  end, 100)
+  -- Apply only after Telescope has been loaded by a command or keymap.
+  vim.api.nvim_create_autocmd('User', {
+    pattern = 'LazyLoad',
+    callback = function(args)
+      if args.data == 'telescope.nvim' then
+        M.setup_telescope_optimizations()
+      end
+    end,
+  })
 end
 
 return M
