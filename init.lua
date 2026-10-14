@@ -468,9 +468,10 @@ rtp:prepend(lazypath)
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-  'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
-  'sheerun/vim-polyglot', -- Enhanced syntax highlighting for many languages
-  'pwntester/octo.nvim', -- GitHub integration for code reviews
+  { 'NMAC427/guess-indent.nvim', event = { 'BufReadPre', 'BufNewFile' } },
+  -- Polyglot walks every filetype at startup. Treesitter covers highlighting;
+  -- load polyglot only after the window is up.
+  { 'sheerun/vim-polyglot', event = 'VeryLazy' },
   
 
   -- NOTE: Plugins can also be added by using a table,
@@ -585,7 +586,7 @@ require('lazy').setup({
 
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
-    event = 'VimEnter',
+    event = 'VeryLazy',
     dependencies = {
       'nvim-lua/plenary.nvim',
       { -- If encountering errors, see telescope-fzf-native README for installation instructions
@@ -703,6 +704,7 @@ require('lazy').setup({
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
+    event = 'VeryLazy',
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for Neovim
       -- Mason must be loaded before its dependents so we need to set it up here.
@@ -1229,9 +1231,11 @@ require('lazy').setup({
   },
   {
     'folke/tokyonight.nvim',
+    lazy = true,
   },
   {
     'projekt0n/github-nvim-theme',
+    lazy = true, -- loaded by the colorscheme command below
   },
 
   {
@@ -1248,6 +1252,7 @@ require('lazy').setup({
   },
   {
     'stevearc/aerial.nvim',
+    event = 'VeryLazy',
     opts = {
       -- Show all symbols (disable filtering)
       filter_kind = false,
@@ -1296,6 +1301,7 @@ require('lazy').setup({
   },
   {
     'akinsho/bufferline.nvim',
+    event = 'VeryLazy',
     opts = {
       options = {
         numbers = 'ordinal', -- Shows buffer numbers (1, 2, 3, etc.)
@@ -1309,6 +1315,7 @@ require('lazy').setup({
   },
   {
     'dhananjaylatkar/cscope_maps.nvim',
+    event = 'VeryLazy',
     dependencies = { 'nvim-telescope/telescope.nvim' }, -- optional, for nice picker UI
     config = function()
       require('cscope_maps').setup {
@@ -1323,7 +1330,7 @@ require('lazy').setup({
     end,
   },
   -- Highlight todo, notes, etc in comments
-  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
+  { 'folke/todo-comments.nvim', event = 'VeryLazy', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
   -- Automatic bullet and numbering for lists
   { 'dkarter/bullets.vim' },
@@ -1451,6 +1458,7 @@ require('lazy').setup({
     'nvim-treesitter/nvim-treesitter',
     branch = 'master',
     build = ':TSUpdate',
+    event = { 'BufReadPost', 'BufNewFile' },
     config = function()
       require('nvim-treesitter').setup({
         ensure_installed = {

@@ -2,6 +2,7 @@ return {
   -- Override LazyVim default colorscheme
   {
     'dhananjaylatkar/cscope_maps.nvim',
+    event = 'VeryLazy',
     dependencies = { 'nvim-telescope/telescope.nvim' }, -- optional, for nice picker UI
     config = function()
       require('cscope_maps').setup {
@@ -17,10 +18,10 @@ return {
   },
   {
     url = 'https://codeberg.org/andyg/leap.nvim',
-    config = function()
-      vim.keymap.set({ 'n', 'x', 'o' }, 'gs', '<Plug>(leap-forward)')
-      vim.keymap.set({ 'n', 'x', 'o' }, 'gS', '<Plug>(leap-backward)')
-    end,
+    keys = {
+      { 'gs', '<Plug>(leap-forward)', mode = { 'n', 'x', 'o' }, desc = 'Leap forward' },
+      { 'gS', '<Plug>(leap-backward)', mode = { 'n', 'x', 'o' }, desc = 'Leap backward' },
+    },
   },
   {
     'folke/trouble.nvim',
@@ -43,6 +44,7 @@ return {
   },
   {
     'akinsho/bufferline.nvim',
+    event = 'VeryLazy',
     opts = {
       options = {
         numbers = 'ordinal', -- Shows buffer numbers (1, 2, 3, etc.)
@@ -85,9 +87,11 @@ return {
       { '<C-o>', '<cmd>AerialToggle!<cr>', desc = 'Toggle Aerial (symbols sidebar)' },
     },
   },
-  -- GitHub integration for code reviews
+  -- GitHub integration for code reviews (disabled)
   {
     'pwntester/octo.nvim',
+    enabled = false,
+    cmd = 'Octo',
     dependencies = {
       'nvim-lua/plenary.nvim',
       'nvim-telescope/telescope.nvim',
@@ -251,6 +255,7 @@ return {
   },
   {
     'nvim-treesitter/nvim-treesitter-context',
+    event = 'VeryLazy',
     opts = {
       enable = true,
       max_lines = 3,
@@ -301,7 +306,6 @@ return {
   },
   {
     'dhruvasagar/vim-table-mode',
-    lazy = false,
     init = function()
       vim.g.table_mode_auto_align = 1
     end,
