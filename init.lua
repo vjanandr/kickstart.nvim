@@ -97,8 +97,10 @@ pcall(function()
   end
 end)
 
--- Enable syntax highlighting
-vim.cmd 'syntax on'
+-- NOTE: `syntax on` is the default in Neovim. Running it here re-sources
+-- filetype.lua, which fires FileType for the startup buffer *before* lazy.nvim
+-- is set up, so ft-lazy-loaded plugins (render-markdown, vim-markdown, ...)
+-- never loaded when opening `nvim file.md`.
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
@@ -1154,8 +1156,9 @@ require('lazy').setup({
   },
   {
     'iamcco/markdown-preview.nvim',
-    cmd = { 'MarkdownPreviewToggle', 'MarkdownPreview', 'MarkdownPreviewStop' },
-    ft = 'markdown',
+    -- Not lazy-loaded: the plugin defines its commands per-buffer on
+    -- BufEnter/FileType, so it must be sourced before any buffer is opened.
+    lazy = false,
     build = function()
       vim.fn['mkdp#util#install']()
     end,

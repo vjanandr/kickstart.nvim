@@ -327,6 +327,7 @@ return {
     opts = {
       file_types = { 'markdown', 'codecompanion' },
       render_modes = true,
+      anti_conceal = { enabled = false },
       heading = { sign = false },
       code = { sign = false, width = 'block', right_pad = 1 },
       checkbox = { enabled = true },
