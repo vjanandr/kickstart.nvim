@@ -328,8 +328,14 @@ return {
       file_types = { 'markdown', 'codecompanion' },
       render_modes = true,
       anti_conceal = { enabled = false },
+      -- Keep the cursor line rendered (default '' reveals raw text on the cursor line)
+      win_options = { concealcursor = { rendered = 'nvic' } },
+      -- Wrapped (virtual-line) tables are always un-rendered on the cursor row
+      pipe_table = { wrap = false },
       heading = { sign = false },
-      code = { sign = false, width = 'block', right_pad = 1 },
+      -- border = 'hide' conceals the closing fence line, which also hides the
+      -- ascii-mermaid diagram attached to it (inline virt_lines). Keep it visible.
+      code = { sign = false, width = 'block', right_pad = 1, border = 'thin' },
       checkbox = { enabled = true },
     },
   },
